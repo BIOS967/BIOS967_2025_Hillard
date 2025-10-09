@@ -30,3 +30,6 @@ summary(bruhswouse6)
 
 Timebin1=CoMatrixFix[,CoMatrixFix[1,]>=30000]
 Timebin2=CoMatrixFix[,CoMatrixFix[1,]<=30000 & CoMatrixFix[1,]>=20000]
+Timebin2noyear=Timebin2[-1,]
+Timebin2noyearint=Timebin2 %>% mutate_all(as.integer)
+bruhswouse1=cooccur(Timebin2noyearint, type="spp_site",thresh=TRUE, spp_names=TRUE)
