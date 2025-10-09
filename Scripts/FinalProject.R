@@ -29,3 +29,5 @@ bruhswouse=cooccur(Comatrixnoyearint, type="spp_site",thresh=TRUE,spp_names=TRUE
 summary(bruhswouse6)
 
 Timebin1=CoMatrixFix[,CoMatrixFix[1,]>=30000]
+Bruh swouse bruh swouse
+
