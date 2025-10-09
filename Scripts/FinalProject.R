@@ -1,5 +1,5 @@
 #Reading data csv
-CoMatrix=read.csv("data/Complete PAtable_new.csv")
+CoMatrix=read.csv("Complete PAtable_new.csv")
 #Loading needed packages
 #I had to manually install the cooccur package that I need as it wasn't on CRAN
 #I was able to download it manually as a .tar file and install it manually
@@ -29,3 +29,4 @@ bruhswouse=cooccur(Comatrixnoyearint, type="spp_site",thresh=TRUE,spp_names=TRUE
 summary(bruhswouse6)
 
 Timebin1=CoMatrixFix[,CoMatrixFix[1,]>=30000]
+Timebin2=CoMatrixFix[,CoMatrixFix[1,]<=30000 & CoMatrixFix[1,]>=20000]
