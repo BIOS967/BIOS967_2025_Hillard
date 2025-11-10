@@ -44,8 +44,12 @@ CoocTime4=coocfun[[4]]
 CoocTime5=coocfun[[5]]
 CoocTime6=coocfun[[6]]
 
+
 #Putting the results from the co-occur analysis in list. Special object type called cooccur
 Cooctotals=list(CoocTime1,CoocTime2,CoocTime3,CoocTime4,CoocTime5,CoocTime6)
+save(Cooctotals, file="data/Cooctotals.rdata")
+load("data/Cooctotals.rdata")
+
 #Calculating the proportion of significant pairs by dividing the sum of positive and negative pairs for each time bin by total pairs
 TotalProportionsSig=lapply(Cooctotals, FUN=function(x)(x$co_occurrences)/(x$pairs))
 #Calculating the proportion of aggregate pairs by dividing the number of aggregate pairs by the sum of significant species pairs in each time bin
@@ -61,10 +65,11 @@ TotalProportionsSig=data.frame(t(TotalProportionsSig))
 TotalProportionsSig$X1=as.numeric(TotalProportionsSig$X1)
 #Plot for proportion of significant pairs. stat="identity for single values
 #Used cowplot theme, added labels and title. Changed element text to make it look better
-ggplot(TotalProportionsSig, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="skyblue", width=0.5)+
+ggplot(TotalProportionsSig, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="skyblue", width=0.5, color="black",linewidth=1)+
   theme_cowplot()+labs(x="Time",y="Proportion of Nonrandom Pairs",title="Proportion of Nonrandom Pairs Through Time in North America")+
-  theme(plot.title=element_text(size=12), axis.title.y=element_text(size=10),
+  theme(plot.title=element_text(size=11.5), axis.title.y=element_text(size=10),
         axis.title.x=element_blank(), axis.text.y=element_text(size=10))
+  
 
 #Turning the list of proportions into a dataframe for ggplot
 TotalProportionsAgg=as.data.frame(TotalProportionsAgg)
@@ -76,9 +81,15 @@ TotalProportionsAgg=data.frame(t(TotalProportionsAgg))
 TotalProportionsAgg$X1=as.numeric(TotalProportionsAgg$X1)
 #Plot for proportion of aggregated pairs. stat="identity for single values
 #Used cowplot theme, added labels and title. Changed element text to make it look better, also changed axis range to illuminate trend
-ggplot(TotalProportionsAgg, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="tomato", width=0.5)+
+ggplot(TotalProportionsAgg, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="tomato", width=0.5, color="black",linewidth=1)+
   theme_cowplot()+labs(x="Time",y="Proportion of Aggregated Pairs", title="Proportion of Aggregated Pairs Through Time in North America")+
-  theme(plot.title=element_text(size=12), axis.title.y=element_text(size=10),
+  theme(plot.title=element_text(size=11.5), axis.title.y=element_text(size=10),
           axis.title.x=element_blank(), axis.text.y=element_text(size=10))+
   coord_cartesian(ylim=c(0.4,0.9))
   
+SpeciesDiets=read.csv("data/TraitdataTestVersion.csv")
+pair(mod=Cooctotals, "Alces_alces")
+lapply(Cooctotals, FUN=function(x)(pair(x, "Alces_alces")))
+bruhswouse=pair.attributes(Cooctotals[[1]])
+
+mergetable=merge(bruhswouse, SpeciesDiets, by="sppname", all.x=T)
