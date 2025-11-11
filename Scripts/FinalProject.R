@@ -58,7 +58,7 @@ TotalProportionsAgg=lapply(Cooctotals,FUN=function(x) (x$positive)/(x$co_occurre
 #Turning the list of proportions into a dataframe for ggplot
 TotalProportionsSig=as.data.frame(TotalProportionsSig)
 #Adding a row to the dataframe for the categorical timebins for ggplot, added timebin labels
-TotalProportionsSig[nrow(TotalProportionsSig)+1,]=c("Timebin1","Timebin2","Timebin3","Timebin4","Timebin5","Timebin6")
+TotalProportionsSig[nrow(TotalProportionsSig)+1,]=c("30000","25000","20000","15000","10000","5000")
 #Transposing the dataframe so that the values for proportions are a column not a row
 TotalProportionsSig=data.frame(t(TotalProportionsSig))
 #Turned the proportion values to numerics from characters
@@ -74,7 +74,7 @@ ggplot(TotalProportionsSig, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="skyb
 #Turning the list of proportions into a dataframe for ggplot
 TotalProportionsAgg=as.data.frame(TotalProportionsAgg)
 #Adding a row to the dataframe for the categorical timebins for ggplot, added timebin labels
-TotalProportionsAgg[nrow(TotalProportionsAgg)+1,]=c("Timebin1","Timebin2","Timebin3","Timebin4","Timebin5","Timebin6")
+TotalProportionsAgg[nrow(TotalProportionsAgg)+1,]=c("30000","25000","20000","15000","10000","5000")
 #Transposing the dataframe so that the values for proportions are a column not a row
 TotalProportionsAgg=data.frame(t(TotalProportionsAgg))
 #Turned the proportion values to numerics from characters
@@ -88,8 +88,9 @@ ggplot(TotalProportionsAgg, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="toma
   coord_cartesian(ylim=c(0.4,0.9))
   
 SpeciesDiets=read.csv("data/TraitdataTestVersion.csv")
-pair(mod=Cooctotals, "Alces_alces")
-lapply(Cooctotals, FUN=function(x)(pair(x, "Alces_alces")))
-bruhswouse=pair.attributes(Cooctotals[[1]])
+
 
 mergetable=merge(bruhswouse, SpeciesDiets, by="sppname", all.x=T)
+
+stilldontknow=prob.table(Cooctotals[[1]])
+mergetable=stilldontknow%>%left_join(SpeciesDiets, by=c("sp1_name"="sppname"))
