@@ -89,8 +89,81 @@ ggplot(TotalProportionsAgg, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="toma
   
 SpeciesDiets=read.csv("data/TraitdataTestVersion.csv")
 
+probtable1=prob.table(Cooctotals[[1]])
+probtable1=probtable1%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
+  left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
+probtable1$Pairtype[probtable1$p_gt<=0.05] = "Positive"
+probtable1$Pairtype[probtable1$p_lt<=0.05]="Negative"
+probtable1$Pairtype[probtable1$p_gt>0.05 & probtable1$p_lt>0.05]="Random"
+probtable1$time=1
 
-mergetable=merge(bruhswouse, SpeciesDiets, by="sppname", all.x=T)
+probtable2=prob.table(Cooctotals[[2]])
+probtable2=probtable2%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
+  left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
+probtable2$Pairtype[probtable2$p_gt<=0.05] = "Positive"
+probtable2$Pairtype[probtable2$p_lt<=0.05]="Negative"
+probtable2$Pairtype[probtable2$p_gt>0.05 & probtable2$p_lt>0.05]="Random"
+probtable2$time=2
 
-stilldontknow=prob.table(Cooctotals[[1]])
-mergetable=stilldontknow%>%left_join(SpeciesDiets, by=c("sp1_name"="sppname"))
+probtable3=prob.table(Cooctotals[[3]])
+probtable3=probtable3%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
+  left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
+probtable3$Pairtype[probtable3$p_gt<=0.05] = "Positive"
+probtable3$Pairtype[probtable3$p_lt<=0.05]="Negative"
+probtable3$Pairtype[probtable3$p_gt>0.05 & probtable3$p_lt>0.05]="Random"
+probtable3$time=3
+
+probtable4=prob.table(Cooctotals[[4]])
+probtable4=probtable4%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
+  left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
+probtable4$Pairtype[probtable4$p_gt<=0.05] = "Positive"
+probtable4$Pairtype[probtable4$p_lt<=0.05]="Negative"
+probtable4$Pairtype[probtable4$p_gt>0.05 & probtable4$p_lt>0.05]="Random"
+probtable4$time =4
+
+probtable5=prob.table(Cooctotals[[5]])
+probtable5=probtable5%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
+  left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
+probtable5$Pairtype[probtable5$p_gt<=0.05] = "Positive"
+probtable5$Pairtype[probtable5$p_lt<=0.05]="Negative"
+probtable5$Pairtype[probtable5$p_gt>0.05 & probtable5$p_lt>0.05]="Random"
+probtable5$time=5
+
+probtable6=prob.table(Cooctotals[[6]])
+probtable6=probtable6%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
+  left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
+probtable6$Pairtype[probtable6$p_gt<=0.05] = "Positive"
+probtable6$Pairtype[probtable6$p_lt<=0.05]="Negative"
+probtable6$Pairtype[probtable6$p_gt>0.05 & probtable6$p_lt>0.05]="Random"
+probtable6$time=6
+
+Probtablecomb= list(probtable1,probtable2,probtable3,probtable4,probtable5,probtable6)
+Probtablecomb= lapply(Probtablecomb,FUN=function(x)(x[x$Pairtype != "Random",]))
+Splitprobtable= lapply(Probtablecomb, FUN=function(x)(split(x, x$Pairtype)))
+Posprobtable= lapply(Splitprobtable, `[[`, "Positive")
+Posprobtable=bind_rows(Posprobtable, .id="source")
+Negprobtable= lapply(Splitprobtable, `[[`, "Negative")
+Negprobtable=bind_rows(Negprobtable, .id="source")
+
+
+Posprobtable$sp1_diet = as.character(Posprobtable$sp1_diet)
+Posprobtable$sp2_diet = as.character(Posprobtable$sp2_diet)
+Posprobtable$diet_pair = ifelse(is.na(Posprobtable$sp1_diet) | is.na(Posprobtable$sp2_diet),
+                                      NA_character_, paste(pmin(Posprobtable$sp1_diet, Posprobtable$sp2_diet),
+                                                           pmax(Posprobtable$sp1_diet, Posprobtable$sp2_diet),
+                                                           sep="-"))
+Negprobtable$sp1_diet = as.character(Negprobtable$sp1_diet)
+Negprobtable$sp2_diet = as.character(Negprobtable$sp2_diet)
+Negprobtable$diet_pair = ifelse(is.na(Negprobtable$sp1_diet) | is.na(Negprobtable$sp2_diet),
+                                NA_character_, paste(pmin(Negprobtable$sp1_diet, Negprobtable$sp2_diet),
+                                                     pmax(Negprobtable$sp1_diet, Negprobtable$sp2_diet),
+                                                     sep="-"))
+
+Posprobtable$species_pair= paste(pmin(as.character(Posprobtable$sp1_name),as.character(Posprobtable$sp2_name)),
+                                 pmax(as.character(Posprobtable$sp1_name),as.character(Posprobtable$sp2_name)),
+                                 sep="-")
+Negprobtable$species_pair= paste(pmin(as.character(Negprobtable$sp1_name),as.character(Negprobtable$sp2_name)),
+                                 pmax(as.character(Negprobtable$sp1_name),as.character(Negprobtable$sp2_name)),
+                                 sep="-")
+
+CarnPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Carnivore","Carnivore-Carnivore","Carnivore-Frugivore","Carnivore-Grazer","Carnivore-Insectivore","Carnivore-Omnivore"))
