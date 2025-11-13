@@ -86,17 +86,22 @@ ggplot(TotalProportionsAgg, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="toma
   theme(plot.title=element_text(size=11.5), axis.title.y=element_text(size=10),
           axis.title.x=element_blank(), axis.text.y=element_text(size=10))+
   coord_cartesian(ylim=c(0.4,0.9))
-  
+#Now I am inserting the diet data
 SpeciesDiets=read.csv("data/TraitdataTestVersion.csv")
 
+#For each timebin I am using the Cooccur function of prob table to get data frames with the species pairs and whether the pair is significant 
 probtable1=prob.table(Cooctotals[[1]])
+#Adding the column with diet variables to the prob table from the diet data. Made two diet columns for both species in pairs so species names match.
 probtable1=probtable1%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
   left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
+#In the probtable, positive and negative pairs are determined by whether the p_gt(positive) or p_lt(negative) values are significant (below an alpha value of 0.05)
 probtable1$Pairtype[probtable1$p_gt<=0.05] = "Positive"
 probtable1$Pairtype[probtable1$p_lt<=0.05]="Negative"
 probtable1$Pairtype[probtable1$p_gt>0.05 & probtable1$p_lt>0.05]="Random"
+#Adding a column for time as I will be combining all the timebins later.
 probtable1$time=1
 
+#Repeated these steps for the other 5 timebins. Couldn't figure out how to make this into a loop.
 probtable2=prob.table(Cooctotals[[2]])
 probtable2=probtable2%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
   left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
@@ -137,33 +142,60 @@ probtable6$Pairtype[probtable6$p_lt<=0.05]="Negative"
 probtable6$Pairtype[probtable6$p_gt>0.05 & probtable6$p_lt>0.05]="Random"
 probtable6$time=6
 
+#Now that all the diet datas and pair types are assigned I can combine all the prob tables into a list.
 Probtablecomb= list(probtable1,probtable2,probtable3,probtable4,probtable5,probtable6)
+#First I want to get rid of all the pairs that are random as these are not part of my analysis. 
 Probtablecomb= lapply(Probtablecomb,FUN=function(x)(x[x$Pairtype != "Random",]))
+#Now that I have just positive and negative pairs, I can split the list into a nested list with separate dataframes for positive and negative pairs
 Splitprobtable= lapply(Probtablecomb, FUN=function(x)(split(x, x$Pairtype)))
+#Now I am pulling out the Positive and negative dataframes from the nested list and making them into a new individual dataframe with just positive pairs
 Posprobtable= lapply(Splitprobtable, `[[`, "Positive")
 Posprobtable=bind_rows(Posprobtable, .id="source")
+#Same thing for negative pairs
 Negprobtable= lapply(Splitprobtable, `[[`, "Negative")
 Negprobtable=bind_rows(Negprobtable, .id="source")
 
-
+#Next what I need to do is combine the diets of each species to a new column that records the diet pair, as in both diets combined
+#First I turn the diets to characters from factors
 Posprobtable$sp1_diet = as.character(Posprobtable$sp1_diet)
 Posprobtable$sp2_diet = as.character(Posprobtable$sp2_diet)
+#Then I combine them into a new column. The pmin and pmax organize them alphabetically so that Herbivore-Carnivore would be the same as Carnivore-Herbivore
+#I used chatgpt to help here and it showed me how to use pmin and pmax and how to set up that code, I asked it how I could combine the data while preserving different orders being the same.
 Posprobtable$diet_pair = ifelse(is.na(Posprobtable$sp1_diet) | is.na(Posprobtable$sp2_diet),
                                       NA_character_, paste(pmin(Posprobtable$sp1_diet, Posprobtable$sp2_diet),
                                                            pmax(Posprobtable$sp1_diet, Posprobtable$sp2_diet),
                                                            sep="-"))
+#Then I do the same thing for the negative df.
 Negprobtable$sp1_diet = as.character(Negprobtable$sp1_diet)
 Negprobtable$sp2_diet = as.character(Negprobtable$sp2_diet)
 Negprobtable$diet_pair = ifelse(is.na(Negprobtable$sp1_diet) | is.na(Negprobtable$sp2_diet),
                                 NA_character_, paste(pmin(Negprobtable$sp1_diet, Negprobtable$sp2_diet),
                                                      pmax(Negprobtable$sp1_diet, Negprobtable$sp2_diet),
                                                      sep="-"))
-
+#I also need to add species pairs as its own column with the names of each species, so I used pmin and pmax again to order them alphabetically
 Posprobtable$species_pair= paste(pmin(as.character(Posprobtable$sp1_name),as.character(Posprobtable$sp2_name)),
                                  pmax(as.character(Posprobtable$sp1_name),as.character(Posprobtable$sp2_name)),
                                  sep="-")
+#Repeated the same thing for negative pairs
 Negprobtable$species_pair= paste(pmin(as.character(Negprobtable$sp1_name),as.character(Negprobtable$sp2_name)),
                                  pmax(as.character(Negprobtable$sp1_name),as.character(Negprobtable$sp2_name)),
                                  sep="-")
-
+#Because the species names are big, I want to turn them into numbers so that it is not super cluttered on the graph
+Posprobtable = Posprobtable%>% mutate(species_pairnum=as.numeric(factor(species_pair)))
+Negprobtable=Negprobtable%>% mutate(species_pairnum=as.numeric(factor(species_pair)))
+#Because there are so many diet pairs and species pairs, I decided that I need to split the graphs into different subsections of diet pairs
+#I made a carnivore prob table with the carnivore diet pairs and an herbivore prob table with the different herbivore pairs
 CarnPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Carnivore","Carnivore-Carnivore","Carnivore-Frugivore","Carnivore-Grazer","Carnivore-Insectivore","Carnivore-Omnivore"))
+CarnNegprobtable=Negprobtable%>% filter(diet_pair%in% c("Browser-Carnivore","Carnivore-Carnivore","Carnivore-Frugivore","Carnivore-Grazer","Carnivore-Insectivore","Carnivore-Omnivore"))
+HerbPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer"))
+HerbNegprobtable=Negprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer"))
+
+Hp1=ggplot(HerbPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()+theme_cowplot()+
+  xlab("Time")+ ylab("Species Pairs")
+Hp2=ggplot(HerbNegprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()+theme_cowplot()+
+  xlab("Time")+ylab("")
+plot_grid(Hp1,Hp2,ncol=2,align="v",axis="lr", labels=c("Positive Pairs","Negative Pairs"), label_x=0.3, label_y=1.0)
+
+Cp1=ggplot(CarnPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()
+Cp2=ggplot(CarnNegprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()
+plot_grid(Cp1,Cp2,ncol=2,align="v",axis="lr", labels=c("Positive Pairs","Negative Pairs"))
