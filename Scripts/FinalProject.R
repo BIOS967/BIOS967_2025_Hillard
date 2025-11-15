@@ -63,6 +63,8 @@ TotalProportionsSig[nrow(TotalProportionsSig)+1,]=c("30000","25000","20000","150
 TotalProportionsSig=data.frame(t(TotalProportionsSig))
 #Turned the proportion values to numerics from characters
 TotalProportionsSig$X1=as.numeric(TotalProportionsSig$X1)
+#Making sure the categorical timebins are in order
+TotalProportionsSig$X2=factor(TotalProportionsSig$X2, levels=c("30000","25000","20000","15000","10000","5000"))
 #Plot for proportion of significant pairs. stat="identity for single values
 #Used cowplot theme, added labels and title. Changed element text to make it look better
 ggplot(TotalProportionsSig, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="skyblue", width=0.5, color="black",linewidth=1)+
@@ -79,6 +81,8 @@ TotalProportionsAgg[nrow(TotalProportionsAgg)+1,]=c("30000","25000","20000","150
 TotalProportionsAgg=data.frame(t(TotalProportionsAgg))
 #Turned the proportion values to numerics from characters
 TotalProportionsAgg$X1=as.numeric(TotalProportionsAgg$X1)
+#Making sure the categorical timebins are in order
+TotalProportionsAgg$X2=factor(TotalProportionsAgg$X2, levels=c("30000","25000","20000","15000","10000","5000"))
 #Plot for proportion of aggregated pairs. stat="identity for single values
 #Used cowplot theme, added labels and title. Changed element text to make it look better, also changed axis range to illuminate trend
 ggplot(TotalProportionsAgg, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="tomato", width=0.5, color="black",linewidth=1)+
@@ -99,7 +103,7 @@ probtable1$Pairtype[probtable1$p_gt<=0.05] = "Positive"
 probtable1$Pairtype[probtable1$p_lt<=0.05]="Negative"
 probtable1$Pairtype[probtable1$p_gt>0.05 & probtable1$p_lt>0.05]="Random"
 #Adding a column for time as I will be combining all the timebins later.
-probtable1$time=1
+probtable1$time=30000
 
 #Repeated these steps for the other 5 timebins. Couldn't figure out how to make this into a loop.
 probtable2=prob.table(Cooctotals[[2]])
@@ -108,7 +112,7 @@ probtable2=probtable2%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=joi
 probtable2$Pairtype[probtable2$p_gt<=0.05] = "Positive"
 probtable2$Pairtype[probtable2$p_lt<=0.05]="Negative"
 probtable2$Pairtype[probtable2$p_gt>0.05 & probtable2$p_lt>0.05]="Random"
-probtable2$time=2
+probtable2$time=25000
 
 probtable3=prob.table(Cooctotals[[3]])
 probtable3=probtable3%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
@@ -116,7 +120,7 @@ probtable3=probtable3%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=joi
 probtable3$Pairtype[probtable3$p_gt<=0.05] = "Positive"
 probtable3$Pairtype[probtable3$p_lt<=0.05]="Negative"
 probtable3$Pairtype[probtable3$p_gt>0.05 & probtable3$p_lt>0.05]="Random"
-probtable3$time=3
+probtable3$time=20000
 
 probtable4=prob.table(Cooctotals[[4]])
 probtable4=probtable4%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
@@ -124,7 +128,7 @@ probtable4=probtable4%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=joi
 probtable4$Pairtype[probtable4$p_gt<=0.05] = "Positive"
 probtable4$Pairtype[probtable4$p_lt<=0.05]="Negative"
 probtable4$Pairtype[probtable4$p_gt>0.05 & probtable4$p_lt>0.05]="Random"
-probtable4$time =4
+probtable4$time =15000
 
 probtable5=prob.table(Cooctotals[[5]])
 probtable5=probtable5%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
@@ -132,7 +136,7 @@ probtable5=probtable5%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=joi
 probtable5$Pairtype[probtable5$p_gt<=0.05] = "Positive"
 probtable5$Pairtype[probtable5$p_lt<=0.05]="Negative"
 probtable5$Pairtype[probtable5$p_gt>0.05 & probtable5$p_lt>0.05]="Random"
-probtable5$time=5
+probtable5$time=10000
 
 probtable6=prob.table(Cooctotals[[6]])
 probtable6=probtable6%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
@@ -140,7 +144,7 @@ probtable6=probtable6%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=joi
 probtable6$Pairtype[probtable6$p_gt<=0.05] = "Positive"
 probtable6$Pairtype[probtable6$p_lt<=0.05]="Negative"
 probtable6$Pairtype[probtable6$p_gt>0.05 & probtable6$p_lt>0.05]="Random"
-probtable6$time=6
+probtable6$time=5000
 
 #Now that all the diet datas and pair types are assigned I can combine all the prob tables into a list.
 Probtablecomb= list(probtable1,probtable2,probtable3,probtable4,probtable5,probtable6)
@@ -190,12 +194,20 @@ CarnNegprobtable=Negprobtable%>% filter(diet_pair%in% c("Browser-Carnivore","Car
 HerbPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer"))
 HerbNegprobtable=Negprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer"))
 
-Hp1=ggplot(HerbPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()+theme_cowplot()+
-  xlab("Time")+ ylab("Species Pairs")
-Hp2=ggplot(HerbNegprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()+theme_cowplot()+
-  xlab("Time")+ylab("")
-plot_grid(Hp1,Hp2,ncol=2,align="v",axis="lr", labels=c("Positive Pairs","Negative Pairs"), label_x=0.3, label_y=1.0)
+Hp1=ggplot(HerbPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
+  xlab("Time")+ ylab("Species Pairs")+theme(legend.position="none")+
+  scale_color_discrete(name="Diet Pair")+scale_shape_discrete(name="Diet Pair")+
+  guides(color=guide_legend(), shape=guide_legend())+scale_x_continuous(trans="reverse")
+Hp2=ggplot(HerbNegprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
+  xlab("Time")+ylab("")+labs(color="Diet Pair")+ scale_color_discrete(name="Diet Pair")+scale_shape_discrete(name="Diet Pair")+
+  guides(color=guide_legend(), shape=guide_legend())+scale_x_continuous(trans="reverse")
+plot_grid(Hp1,Hp2,ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.3, label_y=1.0)
 
-Cp1=ggplot(CarnPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()
-Cp2=ggplot(CarnNegprobtable, aes(x=time, y=species_pairnum, color=diet_pair))+geom_point()
-plot_grid(Cp1,Cp2,ncol=2,align="v",axis="lr", labels=c("Positive Pairs","Negative Pairs"))
+Cp1=ggplot(CarnPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
+  xlab("Time")+ ylab("Species Pairs")+theme(legend.position="none")+
+  scale_color_discrete(name="Diet Pair")+scale_shape_discrete(name="Diet Pair")+
+  guides(color=guide_legend(), shape=guide_legend())+scale_x_continuous(trans="reverse")
+Cp2=ggplot(CarnNegprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
+  xlab("Time")+ylab("")+labs(color="Diet Pair")+ scale_color_discrete(name="Diet Pair")+scale_shape_discrete(name="Diet Pair")+
+  guides(color=guide_legend(), shape=guide_legend())+scale_x_continuous(trans="reverse")
+plot_grid(Cp1,Cp2,ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.3, label_y=1.0)
