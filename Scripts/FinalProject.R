@@ -212,21 +212,22 @@ Hb1=ggplot(HerbPosprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar
   scale_x_discrete(drop=FALSE)
 Hb2=ggplot(HerbNegprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("")+labs(fill="Trophic Pair")+scale_x_discrete(drop=FALSE)
-plot_grid(Hb1,Hb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+hbc=plot_grid(Hb1,Hb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+ggsave("Herbplot.png", hbc, width=14,height=6,dpi=300)
 
 Cb1=ggplot(CarnPosprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")
 Cb2=ggplot(CarnNegprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("")+labs(fill="Trophic Pair")
-plot_grid(Cb1,Cb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+cbc=plot_grid(Cb1,Cb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+ggsave("Carnplot.png", cbc, width=14, height=6, dpi=300)
 
 Ob1=ggplot(OmPosprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")
-  
 Ob2=ggplot(OmNegprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("")+labs(fill="Trophic Pair")
-plot_grid(Ob1,Ob2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
-
+obc=plot_grid(Ob1,Ob2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+ggsave("Omplot.png",obc,width=14,height=6,dpi=300)
 
 
 
