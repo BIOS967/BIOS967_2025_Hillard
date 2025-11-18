@@ -188,9 +188,15 @@ Negprobtable$species_pair= paste(pmin(as.character(Negprobtable$sp1_name),as.cha
 Posprobtable = Posprobtable%>% mutate(species_pairnum=as.numeric(factor(species_pair)))
 Negprobtable=Negprobtable%>% mutate(species_pairnum=as.numeric(factor(species_pair)))
 
+
 Posprobtable=Posprobtable%>% group_by(time, diet_pair)%>% summarise(pairnum=n(), .groups="drop")
 Negprobtable=Negprobtable%>% group_by(time, diet_pair)%>% summarise(pairnum=n(), .groups="drop")
-
+Comprobtable=bind_rows(Posprobtable, Negprobtable)
+Comprobtable=Comprobtable%>% group_by(time, diet_pair, Pairtype)%>% summarise(pairnum=n(),.groups="drop")
+Totalpairs=Comprobtable%>% group_by(time) %>% summarise(totalsig=sum(pairnum), .groups="drop")
+Comprobtable=Comprobtable%>% left_join(Totalpairs, by="time")%>% mutate(proportion=pairnum/totalsig)
+Posprobtable=Comprobtable%>% filter(Pairtype=="Positive")
+Negprobtable=Comprobtable%>% filter(Pairtype=="Negative")
 #Because there are so many diet pairs and species pairs, I decided that I need to split the graphs into different subsections of diet pairs
 #I made a carnivore prob table with the carnivore diet pairs and an herbivore prob table with the different herbivore pairs
 CarnPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Carnivore","Carnivore-Frugivore","Carnivore-Grazer"))
@@ -200,24 +206,24 @@ HerbNegprobtable=Negprobtable%>% filter(diet_pair %in% c("Browser-Browser","Brow
 OmPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Carnivore-Carnivore","Omnivore-Omnivore","Insectivore-Insectivore","Carnivore-Omnivore","Carnivore-Insectivore","Insectivore-Omnivore"))
 OmNegprobtable=Negprobtable%>% filter(diet_pair %in% c("Carnivore-Carnivore","Omnivore-Omnivore","Insectivore-Insectivore","Carnivore-Omnivore","Carnivore-Insectivore","Insectivore-Omnivore"))
 
-Hb1=ggplot(HerbPosprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+Hb1=ggplot(HerbPosprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")+
   scale_x_continuous(trans="reverse")
-Hb2=ggplot(HerbNegprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+Hb2=ggplot(HerbNegprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("")+labs(fill="Trophic Pair")+scale_x_continuous(trans="reverse")
 plot_grid(Hb1,Hb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
 
-Cb1=ggplot(CarnPosprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+Cb1=ggplot(CarnPosprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")+
   scale_x_continuous(trans="reverse")
-Cb2=ggplot(CarnNegprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+Cb2=ggplot(CarnNegprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("")+labs(fill="Trophic Pair")+scale_x_continuous(trans="reverse")
 plot_grid(Cb1,Cb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
 
-Ob1=ggplot(OmPosprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+Ob1=ggplot(OmPosprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")+
   scale_x_continuous(trans="reverse")
-Ob2=ggplot(OmNegprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+Ob2=ggplot(OmNegprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(stat="identity")+theme_cowplot()+
   xlab("Time")+ylab("")+labs(fill="Trophic Pair")+scale_x_continuous(trans="reverse")
 plot_grid(Ob1,Ob2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
 
