@@ -88,7 +88,7 @@ TotalProportionsAgg$X2=factor(TotalProportionsAgg$X2, levels=c("30000","25000","
 ggplot(TotalProportionsAgg, aes(x=X2,y=X1))+geom_bar(stat="identity", fill="tomato", width=0.5, color="black",linewidth=1)+
   theme_cowplot()+labs(x="Time",y="Proportion of Aggregated Pairs", title="Proportion of Aggregated Pairs Through Time in North America")+
   theme(plot.title=element_text(size=11.5), axis.title.y=element_text(size=10),
-          axis.title.x=element_blank(), axis.text.y=element_text(size=10))+
+           axis.title.x=element_text(size=10),axis.text.y=element_text(size=10))+
   coord_cartesian(ylim=c(0.4,0.9))
 #Now I am inserting the diet data
 SpeciesDiets=read.csv("data/TraitdataTestVersion.csv")
@@ -187,13 +187,49 @@ Negprobtable$species_pair= paste(pmin(as.character(Negprobtable$sp1_name),as.cha
 #Because the species names are big, I want to turn them into numbers so that it is not super cluttered on the graph
 Posprobtable = Posprobtable%>% mutate(species_pairnum=as.numeric(factor(species_pair)))
 Negprobtable=Negprobtable%>% mutate(species_pairnum=as.numeric(factor(species_pair)))
+
+Posprobtable=Posprobtable%>% group_by(time, diet_pair)%>% summarise(pairnum=n(), .groups="drop")
+Negprobtable=Negprobtable%>% group_by(time, diet_pair)%>% summarise(pairnum=n(), .groups="drop")
+
 #Because there are so many diet pairs and species pairs, I decided that I need to split the graphs into different subsections of diet pairs
 #I made a carnivore prob table with the carnivore diet pairs and an herbivore prob table with the different herbivore pairs
-CarnPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Carnivore","Carnivore-Carnivore","Carnivore-Frugivore","Carnivore-Grazer","Carnivore-Insectivore","Carnivore-Omnivore"))
-CarnNegprobtable=Negprobtable%>% filter(diet_pair%in% c("Browser-Carnivore","Carnivore-Carnivore","Carnivore-Frugivore","Carnivore-Grazer","Carnivore-Insectivore","Carnivore-Omnivore"))
-HerbPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer"))
-HerbNegprobtable=Negprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer"))
+CarnPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Carnivore","Carnivore-Frugivore","Carnivore-Grazer"))
+CarnNegprobtable=Negprobtable%>% filter(diet_pair%in% c("Browser-Carnivore","Carnivore-Frugivore","Carnivore-Grazer"))
+HerbPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer", "Frugivore-Grazer","Browser-Frugivore","Frugivore-Frugivore"))
+HerbNegprobtable=Negprobtable%>% filter(diet_pair %in% c("Browser-Browser","Browser-Grazer","Grazer-Grazer","Frugivore-Grazer","Browser-Frugivore","Frugivore-Frugivore"))
+OmPosprobtable=Posprobtable%>% filter(diet_pair %in% c("Carnivore-Carnivore","Omnivore-Omnivore","Insectivore-Insectivore","Carnivore-Omnivore","Carnivore-Insectivore","Insectivore-Omnivore"))
+OmNegprobtable=Negprobtable%>% filter(diet_pair %in% c("Carnivore-Carnivore","Omnivore-Omnivore","Insectivore-Insectivore","Carnivore-Omnivore","Carnivore-Insectivore","Insectivore-Omnivore"))
 
+Hb1=ggplot(HerbPosprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+  xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")+
+  scale_x_continuous(trans="reverse")
+Hb2=ggplot(HerbNegprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+  xlab("Time")+ylab("")+labs(fill="Trophic Pair")+scale_x_continuous(trans="reverse")
+plot_grid(Hb1,Hb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+
+Cb1=ggplot(CarnPosprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+  xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")+
+  scale_x_continuous(trans="reverse")
+Cb2=ggplot(CarnNegprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+  xlab("Time")+ylab("")+labs(fill="Trophic Pair")+scale_x_continuous(trans="reverse")
+plot_grid(Cb1,Cb2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+
+Ob1=ggplot(OmPosprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+  xlab("Time")+ylab("Proportion of Species Pairs")+theme(legend.position="none")+
+  scale_x_continuous(trans="reverse")
+Ob2=ggplot(OmNegprobtable, aes(x=time, y=pairnum, fill=diet_pair))+geom_bar(position="fill",stat="identity")+theme_cowplot()+
+  xlab("Time")+ylab("")+labs(fill="Trophic Pair")+scale_x_continuous(trans="reverse")
+plot_grid(Ob1,Ob2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
+
+
+
+
+
+
+
+
+
+#Obsolete code for this project, but may come in handy later
 Hp1=ggplot(HerbPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
   xlab("Time")+ ylab("Species Pairs")+theme(legend.position="none")+
   scale_color_discrete(name="Diet Pair")+scale_shape_discrete(name="Diet Pair")+
@@ -201,7 +237,7 @@ Hp1=ggplot(HerbPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair, sha
 Hp2=ggplot(HerbNegprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
   xlab("Time")+ylab("")+labs(color="Diet Pair")+ scale_color_discrete(name="Diet Pair")+scale_shape_discrete(name="Diet Pair")+
   guides(color=guide_legend(), shape=guide_legend())+scale_x_continuous(trans="reverse")
-plot_grid(Hp1,Hp2,ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.3, label_y=1.0)
+plot_grid(Hp1,Hp2,ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.15, label_y=1.0)
 
 Cp1=ggplot(CarnPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
   xlab("Time")+ ylab("Species Pairs")+theme(legend.position="none")+
