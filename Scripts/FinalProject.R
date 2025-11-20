@@ -229,10 +229,104 @@ Ob2=ggplot(OmNegprobtable, aes(x=time, y=proportion, fill=diet_pair))+geom_bar(s
 obc=plot_grid(Ob1,Ob2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","Segregations"), label_x=0.2, label_y=1.0)
 ggsave("Omplot.png",obc,width=14,height=6,dpi=300)
 
+HerbPosMatrixset=HerbPosprobtable %>% select(diet_pair, time, pairnum)%>% 
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+HerbPosMatrix=as.matrix(HerbPosMatrixset[,-1])
+rownames(HerbPosMatrix)=HerbPosMatrixset$diet_pair
+HerbPosMatrix=t(HerbPosMatrix)
+herbpostimebins= rownames(HerbPosMatrix)
+herbposdietbins= combn(herbpostimebins, 2, simplify=F)
+herbposresults=list()
+for(x in herbposdietbins){herbpossubmat=HerbPosMatrix[x,,drop=F]
+herbposcontest=chisq.test(herbpossubmat, simulate.p.value=T, B=10000)
+herbposresults[[paste(x, collapse="_vs_")]]=list(bins=x,matrix=herbpossubmat, chisq=herbposcontest)}
+herbpospvals=lapply(names(herbposresults), function(name){
+  data.frame(Timebins=name, herbpospvalue=herbposresults[[name]]$chisq$p.value)
+})%>% bind_rows()
 
+HerbNegMatrixset=HerbNegprobtable%>% select(diet_pair, time, pairnum)%>%
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+HerbNegMatrix=as.matrix(HerbNegMatrixset[,-1])
+rownames(HerbNegMatrix)=HerbNegMatrixset$diet_pair
+HerbNegMatrix=t(HerbNegMatrix)
+HerbNegtimebins=rownames(HerbNegMatrix)
+HerbNegdietbins=combn(HerbNegtimebins, 2, simplify=F)
+HerbNegresults=list()
+for(x in HerbNegdietbins){HerbNegsubmat=HerbNegMatrix[x,,drop=F]
+HerbNegcontest=chisq.test(HerbNegsubmat, simulate.p.value=T, B=10000)
+HerbNegresults[[paste(x, collapse="_vs_")]]=list(bins=x, matrix=HerbNegsubmat, chisq=HerbNegcontest)}
+HerbNegpvals=lapply(names(HerbNegresults), function(name){
+  data.frame(Timebins=name, HerbNegpvalue=HerbNegresults[[name]]$chisq$p.value)
+})%>% bind_rows()
 
+HerbPvalues=left_join(herbpospvals, HerbNegpvals, by="Timebins")
 
+CarnPosMatrixset=CarnPosprobtable %>% select(diet_pair, time, pairnum)%>% 
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+CarnPosMatrix=as.matrix(CarnPosMatrixset[,-1])
+rownames(CarnPosMatrix)=CarnPosMatrixset$diet_pair
+CarnPosMatrix=t(CarnPosMatrix)
+Carnpostimebins= rownames(CarnPosMatrix)
+Carnposdietbins= combn(Carnpostimebins, 2, simplify=F)
+Carnposresults=list()
+for(x in Carnposdietbins){Carnpossubmat=CarnPosMatrix[x,,drop=F]
+Carnposcontest=chisq.test(Carnpossubmat, simulate.p.value=T, B=10000)
+Carnposresults[[paste(x, collapse="_vs_")]]=list(bins=x,matrix=Carnpossubmat, chisq=Carnposcontest)}
+Carnpospvals=lapply(names(Carnposresults), function(name){
+  data.frame(Timebins=name, Carnpospvalue=Carnposresults[[name]]$chisq$p.value)
+})%>% bind_rows()
 
+CarnNegMatrixset=CarnNegprobtable%>% select(diet_pair, time, pairnum)%>%
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+CarnNegMatrix=as.matrix(CarnNegMatrixset[,-1])
+rownames(CarnNegMatrix)=CarnNegMatrixset$diet_pair
+CarnNegMatrix=t(CarnNegMatrix)
+CarnNegtimebins=rownames(CarnNegMatrix)
+CarnNegdietbins=combn(CarnNegtimebins, 2, simplify=F)
+CarnNegresults=list()
+for(x in CarnNegdietbins){CarnNegsubmat=CarnNegMatrix[x,,drop=F]
+CarnNegcontest=chisq.test(CarnNegsubmat, simulate.p.value=T, B=10000)
+CarnNegresults[[paste(x, collapse="_vs_")]]=list(bins=x, matrix=CarnNegsubmat, chisq=CarnNegcontest)}
+CarnNegpvals=lapply(names(CarnNegresults), function(name){
+  data.frame(Timebins=name, CarnNegpvalue=CarnNegresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+CarnPvalues=left_join(Carnpospvals, CarnNegpvals, by="Timebins")
+
+OmPosMatrixset=OmPosprobtable %>% select(diet_pair, time, pairnum)%>% 
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+OmPosMatrix=as.matrix(OmPosMatrixset[,-1])
+rownames(OmPosMatrix)=OmPosMatrixset$diet_pair
+OmPosMatrix=t(OmPosMatrix)
+Ompostimebins= rownames(OmPosMatrix)
+Omposdietbins= combn(Ompostimebins, 2, simplify=F)
+Omposresults=list()
+for(x in Omposdietbins){Ompossubmat=OmPosMatrix[x,,drop=F]
+Omposcontest=chisq.test(Ompossubmat, simulate.p.value=T, B=10000)
+Omposresults[[paste(x, collapse="_vs_")]]=list(bins=x,matrix=Ompossubmat, chisq=Omposcontest)}
+Ompospvals=lapply(names(Omposresults), function(name){
+  data.frame(Timebins=name, Ompospvalue=Omposresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+OmNegMatrixset=OmNegprobtable%>% select(diet_pair, time, pairnum)%>%
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+OmNegMatrix=as.matrix(OmNegMatrixset[,-1])
+rownames(OmNegMatrix)=OmNegMatrixset$diet_pair
+OmNegMatrix=t(OmNegMatrix)
+OmNegtimebins=rownames(OmNegMatrix)
+OmNegdietbins=combn(OmNegtimebins, 2, simplify=F)
+OmNegresults=list()
+for(x in OmNegdietbins){OmNegsubmat=OmNegMatrix[x,,drop=F]
+OmNegcontest=chisq.test(OmNegsubmat, simulate.p.value=T, B=10000)
+OmNegresults[[paste(x, collapse="_vs_")]]=list(bins=x, matrix=OmNegsubmat, chisq=OmNegcontest)}
+OmNegpvals=lapply(names(OmNegresults), function(name){
+  data.frame(Timebins=name, OmNegpvalue=OmNegresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+OmPvalues=left_join(Ompospvals, OmNegpvals, by="Timebins")
+
+TotalPValues=left_join(HerbPvalues, CarnPvalues, OmPvalues, by="Timebins")
+TotalPValues=left_join(TotalPValues, OmPvalues, by="Timebins")
 
 
 
