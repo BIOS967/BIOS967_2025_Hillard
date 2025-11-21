@@ -328,7 +328,35 @@ OmPvalues=left_join(Ompospvals, OmNegpvals, by="Timebins")
 TotalPValues=left_join(HerbPvalues, CarnPvalues, OmPvalues, by="Timebins")
 TotalPValues=left_join(TotalPValues, OmPvalues, by="Timebins")
 
+HerbPostest = HerbPosprobtable %>% group_by(time)%>% summarise(herbpairs=sum(pairnum), totalsig=totalsig)
+HerbPostest$time = factor(HerbPostest$time, ordered=T)
+HerbPosreg= glm(herbpairs~time + offset(log(totalsig)), data=HerbPostest, family=poisson)
+HerbPosanova=anova(HerbPosreg, test="Chisq")
 
+HerbNegtest = HerbNegprobtable %>% group_by(time)%>% summarise(herbpairs=sum(pairnum), totalsig=totalsig)
+HerbNegtest$time = factor(HerbNegtest$time, ordered=T)
+HerbNegreg= glm(herbpairs~time + offset(log(totalsig)), data=HerbNegtest, family=poisson)
+HerbNeganova=anova(HerbNegreg, test="Chisq")
+
+CarnPostest = CarnPosprobtable %>% group_by(time)%>% summarise(carnpairs=sum(pairnum), totalsig=totalsig)
+CarnPostest$time = factor(CarnPostest$time, ordered=T)
+CarnPosreg= glm(carnpairs~time + offset(log(totalsig)), data=CarnPostest, family=poisson)
+CarnPosanova=anova(CarnPosreg, test="Chisq")
+
+CarnNegtest = CarnNegprobtable %>% group_by(time)%>% summarise(carnpairs=sum(pairnum), totalsig=totalsig)
+CarnNegtest$time = factor(CarnNegtest$time, ordered=T)
+CarnNegreg= glm(carnpairs~time + offset(log(totalsig)), data=CarnNegtest, family=poisson)
+CarnNeganova=anova(CarnNegreg, test="Chisq")
+
+OmPostest = OmPosprobtable %>% group_by(time)%>% summarise(ompairs=sum(pairnum), totalsig=totalsig)
+OmPostest$time = factor(OmPostest$time, ordered=T)
+OmPosreg= glm(ompairs~time + offset(log(totalsig)), data=OmPostest, family=poisson)
+OmPosanova=anova(OmPosreg, test="Chisq")
+
+OmNegtest = OmNegprobtable %>% group_by(time)%>% summarise(ompairs=sum(pairnum), totalsig=totalsig)
+OmNegtest$time = factor(OmNegtest$time, ordered=T)
+OmNegreg= glm(ompairs~time + offset(log(totalsig)), data=OmNegtest, family=poisson)
+OmNeganova=anova(OmNegreg, test="Chisq")
 
 #Obsolete code for this project, but may come in handy later
 Hp1=ggplot(HerbPosprobtable, aes(x=time, y=species_pairnum, color=diet_pair, shape=diet_pair))+geom_point(size=2)+theme_cowplot()+
