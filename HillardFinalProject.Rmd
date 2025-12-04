@@ -25,7 +25,7 @@ CoMatrix=read.csv("data/Complete PAtable_new.csv")
 This dataframe is now present for the analysis with species as columns and sites as rows, with a 0 denoting an absence from that site and a 1 denoting a presence in that site.
 
 We will be using the cooccur package in R to run the cooccurence analysis. 
-```{r}
+```{r, message=F}
 library(ggplot2)
 library(cowplot)
 library(tidyverse)
@@ -137,7 +137,7 @@ Here, for the first time bin, we get a probtable from the Cooccur results for th
 
 We then repeat this step of joining the diet data to the results and describing pairs as Positive, Negative or Random for the other 5 time bins.
 
-```{r}
+```{r, warning=F}
 probtable2=prob.table(Cooctotals[[2]])
 probtable2=probtable2%>%left_join(SpeciesDiets %>% select(sppname, Diet), by=join_by("sp1_name"=="sppname"))%>%rename(sp1_diet=Diet)%>%
   left_join(SpeciesDiets%>% select(sppname, Diet), by=join_by("sp2_name"=="sppname"))%>%rename(sp2_diet=Diet)
@@ -269,3 +269,126 @@ obc=plot_grid(Ob1,Ob2, ncol=2,align="hv",axis="tblr", labels=c("Aggregations","S
 ggsave("Omplot.png",obc,width=14,height=6,dpi=300)
 ```
 ![Omplot](Omplot.png)
+
+#### Contingency Test
+
+Now that we have our graphs and proportions for each time, the final thing I want to do is a contingency test to compare each time bin and see if the proportions are significantly different between time bins.
+
+```{r}
+HerbPosMatrixset=HerbPosprobtable %>% select(diet_pair, time, pairnum)%>% 
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+HerbPosMatrix=as.matrix(HerbPosMatrixset[,-1])
+rownames(HerbPosMatrix)=HerbPosMatrixset$diet_pair
+HerbPosMatrix=t(HerbPosMatrix)
+herbpostimebins= rownames(HerbPosMatrix)
+herbposdietbins= combn(herbpostimebins, 2, simplify=F)
+herbposresults=list()
+for(x in herbposdietbins){herbpossubmat=HerbPosMatrix[x,,drop=F]
+herbposcontest=chisq.test(herbpossubmat, simulate.p.value=T, B=10000)
+herbposresults[[paste(x, collapse="_vs_")]]=list(bins=x,matrix=herbpossubmat, chisq=herbposcontest)}
+herbpospvals=lapply(names(herbposresults), function(name){
+  data.frame(Timebins=name, herbpospvalue=herbposresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+```
+
+Here we selecting the number of pairs for each diet pair and time bin for the positive matrix first. We're turning the data into a matrix and transposing it so that we can run a contingency table on it. I then set up a loop so that I can run the contingency test on each of the distinct times. Finally, a turned it into a dataframe with the p values for each diet type and each of the compared times.
+
+Now we need to do this again for each the negative herbivore values and all the other groups. Once this is done we combined them into a full data table.
+
+```{r, echo=F, warning=F, message=F}
+HerbNegMatrixset=HerbNegprobtable%>% select(diet_pair, time, pairnum)%>%
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+HerbNegMatrix=as.matrix(HerbNegMatrixset[,-1])
+rownames(HerbNegMatrix)=HerbNegMatrixset$diet_pair
+HerbNegMatrix=t(HerbNegMatrix)
+HerbNegtimebins=rownames(HerbNegMatrix)
+HerbNegdietbins=combn(HerbNegtimebins, 2, simplify=F)
+HerbNegresults=list()
+for(x in HerbNegdietbins){HerbNegsubmat=HerbNegMatrix[x,,drop=F]
+HerbNegcontest=chisq.test(HerbNegsubmat, simulate.p.value=T, B=10000)
+HerbNegresults[[paste(x, collapse="_vs_")]]=list(bins=x, matrix=HerbNegsubmat, chisq=HerbNegcontest)}
+HerbNegpvals=lapply(names(HerbNegresults), function(name){
+  data.frame(Timebins=name, HerbNegpvalue=HerbNegresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+HerbPvalues=left_join(herbpospvals, HerbNegpvals, by="Timebins")
+
+CarnPosMatrixset=CarnPosprobtable %>% select(diet_pair, time, pairnum)%>% 
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+CarnPosMatrix=as.matrix(CarnPosMatrixset[,-1])
+rownames(CarnPosMatrix)=CarnPosMatrixset$diet_pair
+CarnPosMatrix=t(CarnPosMatrix)
+Carnpostimebins= rownames(CarnPosMatrix)
+Carnposdietbins= combn(Carnpostimebins, 2, simplify=F)
+Carnposresults=list()
+for(x in Carnposdietbins){Carnpossubmat=CarnPosMatrix[x,,drop=F]
+Carnposcontest=chisq.test(Carnpossubmat, simulate.p.value=T, B=10000)
+Carnposresults[[paste(x, collapse="_vs_")]]=list(bins=x,matrix=Carnpossubmat, chisq=Carnposcontest)}
+Carnpospvals=lapply(names(Carnposresults), function(name){
+  data.frame(Timebins=name, Carnpospvalue=Carnposresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+CarnNegMatrixset=CarnNegprobtable%>% select(diet_pair, time, pairnum)%>%
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+CarnNegMatrix=as.matrix(CarnNegMatrixset[,-1])
+rownames(CarnNegMatrix)=CarnNegMatrixset$diet_pair
+CarnNegMatrix=t(CarnNegMatrix)
+CarnNegtimebins=rownames(CarnNegMatrix)
+CarnNegdietbins=combn(CarnNegtimebins, 2, simplify=F)
+CarnNegresults=list()
+for(x in CarnNegdietbins){CarnNegsubmat=CarnNegMatrix[x,,drop=F]
+CarnNegcontest=chisq.test(CarnNegsubmat, simulate.p.value=T, B=10000)
+CarnNegresults[[paste(x, collapse="_vs_")]]=list(bins=x, matrix=CarnNegsubmat, chisq=CarnNegcontest)}
+CarnNegpvals=lapply(names(CarnNegresults), function(name){
+  data.frame(Timebins=name, CarnNegpvalue=CarnNegresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+CarnPvalues=left_join(Carnpospvals, CarnNegpvals, by="Timebins")
+
+OmPosMatrixset=OmPosprobtable %>% select(diet_pair, time, pairnum)%>% 
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+OmPosMatrix=as.matrix(OmPosMatrixset[,-1])
+rownames(OmPosMatrix)=OmPosMatrixset$diet_pair
+OmPosMatrix=t(OmPosMatrix)
+Ompostimebins= rownames(OmPosMatrix)
+Omposdietbins= combn(Ompostimebins, 2, simplify=F)
+Omposresults=list()
+for(x in Omposdietbins){Ompossubmat=OmPosMatrix[x,,drop=F]
+Omposcontest=chisq.test(Ompossubmat, simulate.p.value=T, B=10000)
+Omposresults[[paste(x, collapse="_vs_")]]=list(bins=x,matrix=Ompossubmat, chisq=Omposcontest)}
+Ompospvals=lapply(names(Omposresults), function(name){
+  data.frame(Timebins=name, Ompospvalue=Omposresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+OmNegMatrixset=OmNegprobtable%>% select(diet_pair, time, pairnum)%>%
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+OmNegMatrix=as.matrix(OmNegMatrixset[,-1])
+rownames(OmNegMatrix)=OmNegMatrixset$diet_pair
+OmNegMatrix=t(OmNegMatrix)
+OmNegtimebins=rownames(OmNegMatrix)
+OmNegdietbins=combn(OmNegtimebins, 2, simplify=F)
+OmNegresults=list()
+for(x in OmNegdietbins){OmNegsubmat=OmNegMatrix[x,,drop=F]
+OmNegcontest=chisq.test(OmNegsubmat+1, simulate.p.value=T, B=10000)
+OmNegresults[[paste(x, collapse="_vs_")]]=list(bins=x, matrix=OmNegsubmat, chisq=OmNegcontest)}
+OmNegpvals=lapply(names(OmNegresults), function(name){
+  data.frame(Timebins=name, OmNegpvalue=OmNegresults[[name]]$chisq$p.value)
+})%>% bind_rows()
+
+OmPvalues=left_join(Ompospvals, OmNegpvals, by="Timebins")
+```
+Now that we have the results for all the P values we can combine them to a single dataframe to read them
+
+```{r}
+TotalPValues=left_join(HerbPvalues, CarnPvalues, OmPvalues, by="Timebins")
+TotalPValues=left_join(TotalPValues, OmPvalues, by="Timebins")
+TotalPValues
+```
+
+## 3. Discussion
+
+  Like previous studies, we find a decrease in aggregations along the transition from the Pleistocene to the modern day, however we do not see the proportion of aggregations drop below 50% as seen in other studies. This disparity could be a result of us using the cooccur package in R which operates on a different model than other studies for the cooccurrance analysis. 
+  
+  For the diet pair data, we see that the majority of the significant aggregations and segregations are found within herbivore pairs, even in the modern day. This could potentially represent the existence of large mixed-species herds of Megafauna present in the Pleistocene, similar to modern day Africa. Herbivore species making up these herds would be forming more significant aggregations. 
+  
+  Another interesting finding from the diet data is that, while the herbivore pairs show a clear shift from aggregations to segregations through time, the predator-prey pairs do not seem to become significantly less aggregated through time even though they do show an increase in segregated pairs. We see a similar pattern with the carnivore and omnivore diet pairs. It is possible that a mesocarnivore release following the loss of large carnivores and herbivores could explain why there isn't a pronounced loss of aggregated pairs. Future studies should explore whether the species making up the predator-prey pairs are the same though time and whether or not the lower sample size from the older time bins is distorting the findings. 

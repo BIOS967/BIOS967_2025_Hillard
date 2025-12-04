@@ -391,32 +391,10 @@ and a 1 denoting a presence in that site.</p>
 analysis.</p>
 <pre class="r"><code>library(ggplot2)
 library(cowplot)
-library(tidyverse)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-## ✔ forcats   1.0.0     ✔ stringr   1.5.2
-## ✔ lubridate 1.9.4     ✔ tibble    3.3.0
-## ✔ purrr     1.1.0     ✔ tidyr     1.3.1
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter()    masks stats::filter()
-## ✖ dplyr::lag()       masks stats::lag()
-## ✖ lubridate::stamp() masks cowplot::stamp()
-## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(gmp)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;gmp&#39;
-## 
-## The following objects are masked from &#39;package:base&#39;:
-## 
-##     %*%, apply, crossprod, matrix, tcrossprod</code></pre>
-<pre class="r"><code>library(reshape2)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;reshape2&#39;
-## 
-## The following object is masked from &#39;package:tidyr&#39;:
-## 
-##     smiths</code></pre>
-<pre class="r"><code>library(cooccur)</code></pre>
+library(tidyverse)
+library(gmp)
+library(reshape2)
+library(cooccur)</code></pre>
 <p>This package does a co-occurance analysis on dataframes but requires
 the sites to be the columns and the species to be rows, so We have to
 change the dataframe.</p>
@@ -504,50 +482,40 @@ neither are below 0.05, they are considered not significant pairs.</p>
 <p>We then repeat this step of joining the diet data to the results and
 describing pairs as Positive, Negative or Random for the other 5 time
 bins.</p>
-<pre class="r"><code>probtable2=prob.table(Cooctotals[[2]])</code></pre>
-<pre><code>## Warning in prob.table(Cooctotals[[2]]): The co-occurrence model was run using
-## &#39;thresh = TRUE.&#39; The probability table may not include all species pairs</code></pre>
-<pre class="r"><code>probtable2=probtable2%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
+<pre class="r"><code>probtable2=prob.table(Cooctotals[[2]])
+probtable2=probtable2%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
   left_join(SpeciesDiets%&gt;% select(sppname, Diet), by=join_by(&quot;sp2_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp2_diet=Diet)
 probtable2$Pairtype[probtable2$p_gt&lt;=0.05] = &quot;Positive&quot;
 probtable2$Pairtype[probtable2$p_lt&lt;=0.05]=&quot;Negative&quot;
 probtable2$Pairtype[probtable2$p_gt&gt;0.05 &amp; probtable2$p_lt&gt;0.05]=&quot;Random&quot;
 probtable2$time=25000
 
-probtable3=prob.table(Cooctotals[[3]])</code></pre>
-<pre><code>## Warning in prob.table(Cooctotals[[3]]): The co-occurrence model was run using
-## &#39;thresh = TRUE.&#39; The probability table may not include all species pairs</code></pre>
-<pre class="r"><code>probtable3=probtable3%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
+probtable3=prob.table(Cooctotals[[3]])
+probtable3=probtable3%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
   left_join(SpeciesDiets%&gt;% select(sppname, Diet), by=join_by(&quot;sp2_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp2_diet=Diet)
 probtable3$Pairtype[probtable3$p_gt&lt;=0.05] = &quot;Positive&quot;
 probtable3$Pairtype[probtable3$p_lt&lt;=0.05]=&quot;Negative&quot;
 probtable3$Pairtype[probtable3$p_gt&gt;0.05 &amp; probtable3$p_lt&gt;0.05]=&quot;Random&quot;
 probtable3$time=20000
 
-probtable4=prob.table(Cooctotals[[4]])</code></pre>
-<pre><code>## Warning in prob.table(Cooctotals[[4]]): The co-occurrence model was run using
-## &#39;thresh = TRUE.&#39; The probability table may not include all species pairs</code></pre>
-<pre class="r"><code>probtable4=probtable4%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
+probtable4=prob.table(Cooctotals[[4]])
+probtable4=probtable4%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
   left_join(SpeciesDiets%&gt;% select(sppname, Diet), by=join_by(&quot;sp2_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp2_diet=Diet)
 probtable4$Pairtype[probtable4$p_gt&lt;=0.05] = &quot;Positive&quot;
 probtable4$Pairtype[probtable4$p_lt&lt;=0.05]=&quot;Negative&quot;
 probtable4$Pairtype[probtable4$p_gt&gt;0.05 &amp; probtable4$p_lt&gt;0.05]=&quot;Random&quot;
 probtable4$time =15000
 
-probtable5=prob.table(Cooctotals[[5]])</code></pre>
-<pre><code>## Warning in prob.table(Cooctotals[[5]]): The co-occurrence model was run using
-## &#39;thresh = TRUE.&#39; The probability table may not include all species pairs</code></pre>
-<pre class="r"><code>probtable5=probtable5%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
+probtable5=prob.table(Cooctotals[[5]])
+probtable5=probtable5%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
   left_join(SpeciesDiets%&gt;% select(sppname, Diet), by=join_by(&quot;sp2_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp2_diet=Diet)
 probtable5$Pairtype[probtable5$p_gt&lt;=0.05] = &quot;Positive&quot;
 probtable5$Pairtype[probtable5$p_lt&lt;=0.05]=&quot;Negative&quot;
 probtable5$Pairtype[probtable5$p_gt&gt;0.05 &amp; probtable5$p_lt&gt;0.05]=&quot;Random&quot;
 probtable5$time=10000
 
-probtable6=prob.table(Cooctotals[[6]])</code></pre>
-<pre><code>## Warning in prob.table(Cooctotals[[6]]): The co-occurrence model was run using
-## &#39;thresh = TRUE.&#39; The probability table may not include all species pairs</code></pre>
-<pre class="r"><code>probtable6=probtable6%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
+probtable6=prob.table(Cooctotals[[6]])
+probtable6=probtable6%&gt;%left_join(SpeciesDiets %&gt;% select(sppname, Diet), by=join_by(&quot;sp1_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp1_diet=Diet)%&gt;%
   left_join(SpeciesDiets%&gt;% select(sppname, Diet), by=join_by(&quot;sp2_name&quot;==&quot;sppname&quot;))%&gt;%rename(sp2_diet=Diet)
 probtable6$Pairtype[probtable6$p_gt&lt;=0.05] = &quot;Positive&quot;
 probtable6$Pairtype[probtable6$p_lt&lt;=0.05]=&quot;Negative&quot;
@@ -647,6 +615,99 @@ ggsave(&quot;Omplot.png&quot;,obc,width=14,height=6,dpi=300)</code></pre>
 <div class="figcaption">Omplot</div>
 </div>
 </div>
+<div id="contingency-test" class="section level4">
+<h4>Contingency Test</h4>
+<p>Now that we have our graphs and proportions for each time, the final
+thing I want to do is a contingency test to compare each time bin and
+see if the proportions are significantly different between time
+bins.</p>
+<pre class="r"><code>HerbPosMatrixset=HerbPosprobtable %&gt;% select(diet_pair, time, pairnum)%&gt;% 
+  pivot_wider(names_from=time, values_from=pairnum, values_fill=0)
+HerbPosMatrix=as.matrix(HerbPosMatrixset[,-1])
+rownames(HerbPosMatrix)=HerbPosMatrixset$diet_pair
+HerbPosMatrix=t(HerbPosMatrix)
+herbpostimebins= rownames(HerbPosMatrix)
+herbposdietbins= combn(herbpostimebins, 2, simplify=F)
+herbposresults=list()
+for(x in herbposdietbins){herbpossubmat=HerbPosMatrix[x,,drop=F]
+herbposcontest=chisq.test(herbpossubmat, simulate.p.value=T, B=10000)
+herbposresults[[paste(x, collapse=&quot;_vs_&quot;)]]=list(bins=x,matrix=herbpossubmat, chisq=herbposcontest)}
+herbpospvals=lapply(names(herbposresults), function(name){
+  data.frame(Timebins=name, herbpospvalue=herbposresults[[name]]$chisq$p.value)
+})%&gt;% bind_rows()</code></pre>
+<p>Here we selecting the number of pairs for each diet pair and time bin
+for the positive matrix first. We’re turning the data into a matrix and
+transposing it so that we can run a contingency table on it. I then set
+up a loop so that I can run the contingency test on each of the distinct
+times. Finally, a turned it into a dataframe with the p values for each
+diet type and each of the compared times.</p>
+<p>Now we need to do this again for each the negative herbivore values
+and all the other groups. Once this is done we combined them into a full
+data table.</p>
+<p>Now that we have the results for all the P values we can combine them
+to a single dataframe to read them</p>
+<pre class="r"><code>TotalPValues=left_join(HerbPvalues, CarnPvalues, OmPvalues, by=&quot;Timebins&quot;)
+TotalPValues=left_join(TotalPValues, OmPvalues, by=&quot;Timebins&quot;)
+TotalPValues</code></pre>
+<pre><code>##          Timebins herbpospvalue HerbNegpvalue Carnpospvalue CarnNegpvalue
+## 1   5000_vs_10000    0.55854415    0.00579942    0.02719728    0.08399160
+## 2   5000_vs_15000    0.01039896    0.00079992    0.88911109    0.38436156
+## 3   5000_vs_20000    0.00609939    0.44755524    0.20747925    0.76002400
+## 4   5000_vs_25000    0.09119088    0.12178782    0.07109289    0.77962204
+## 5   5000_vs_30000    0.47645235    0.04719528           NaN    0.40175982
+## 6  10000_vs_15000    0.54754525    0.48235176    0.34446555    0.89711029
+## 7  10000_vs_20000    0.07519248    0.18068193    0.93500650    1.00000000
+## 8  10000_vs_25000    0.50804920    0.60463954    0.11538846    0.57844216
+## 9  10000_vs_30000    0.45835416    0.55684432           NaN    0.05129487
+## 10 15000_vs_20000    0.02229777    0.28847115    0.43515648    1.00000000
+## 11 15000_vs_25000    0.45145485    0.30836916    0.14358564    0.53674633
+## 12 15000_vs_30000    0.45245475    0.23067693           NaN    0.14608539
+## 13 20000_vs_25000    0.36686331    0.12418758    0.14348565    1.00000000
+## 14 20000_vs_30000    0.00509949    0.06539346           NaN    0.59934007
+## 15 25000_vs_30000    0.13078692           NaN           NaN    0.40605939
+##    Ompospvalue OmNegpvalue
+## 1   0.01619838   0.3045695
+## 2   0.07549245   0.4407559
+## 3   0.86831317   0.7369263
+## 4   0.07039296   0.8606139
+## 5          NaN   0.7512249
+## 6   0.01069893   0.7303270
+## 7          NaN   1.0000000
+## 8   0.01199880   0.9723028
+## 9          NaN   1.0000000
+## 10  0.48925107   1.0000000
+## 11  0.06969303   1.0000000
+## 12         NaN   1.0000000
+## 13         NaN   1.0000000
+## 14         NaN   1.0000000
+## 15         NaN   1.0000000</code></pre>
+</div>
+</div>
+<div id="discussion" class="section level2">
+<h2>3. Discussion</h2>
+<p>Like previous studies, we find a decrease in aggregations along the
+transition from the Pleistocene to the modern day, however we do not see
+the proportion of aggregations drop below 50% as seen in other studies.
+This disparity could be a result of us using the cooccur package in R
+which operates on a different model than other studies for the
+cooccurrance analysis.</p>
+<p>For the diet pair data, we see that the majority of the significant
+aggregations and segregations are found within herbivore pairs, even in
+the modern day. This could potentially represent the existence of large
+mixed-species herds of Megafauna present in the Pleistocene, similar to
+modern day Africa. Herbivore species making up these herds would be
+forming more significant aggregations.</p>
+<p>Another interesting finding from the diet data is that, while the
+herbivore pairs show a clear shift from aggregations to segregations
+through time, the predator-prey pairs do not seem to become
+significantly less aggregated through time even though they do show an
+increase in segregated pairs. We see a similar pattern with the
+carnivore and omnivore diet pairs. It is possible that a mesocarnivore
+release following the loss of large carnivores and herbivores could
+explain why there isn’t a pronounced loss of aggregated pairs. Future
+studies should explore whether the species making up the predator-prey
+pairs are the same though time and whether or not the lower sample size
+from the older time bins is distorting the findings.</p>
 </div>
 
 
