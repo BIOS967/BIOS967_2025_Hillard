@@ -1,0 +1,28 @@
+{
+    "id": "3DAC82D5",
+    "path": "~/GitHub/BIOS967_2025_Hillard/Scripts/FinalProject.R",
+    "project_path": "Scripts/FinalProject.R",
+    "type": "r_source",
+    "hash": "2437166946",
+    "contents": "",
+    "dirty": false,
+    "created": 1760034241946.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "213,55",
+        "scrollLine": "197",
+        "docOutlineVisible": "0",
+        "notebook_format": "html_document"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1764702878,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1764702878933,
+    "read_only": false,
+    "read_only_alternatives": []
+}
